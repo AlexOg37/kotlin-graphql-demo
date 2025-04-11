@@ -25,14 +25,11 @@ class BookController(
     fun book(@Argument id: String): Book? = bookService.getBookById(id)
     
     @MutationMapping
-    fun createBook(
-        @Argument title: String,
-        @Argument authorId: String
-    ): Book {
+    fun createBook(@Argument("input") input: BookInput): Book {
         val book = Book(
             id = (bookService.getAllBooks().size + 1).toString(),
-            title = title,
-            authorId = authorId
+            title = input.title,
+            authorId = input.authorId
         )
         return bookService.createBook(book)
     }
@@ -40,10 +37,9 @@ class BookController(
     @MutationMapping
     fun updateBook(
         @Argument id: String,
-        @Argument title: String,
-        @Argument authorId: String
+        @Argument("input") input: BookInput
     ): Book? {
-        val book = Book(id, title, authorId)
+        val book = Book(id, input.title, input.authorId)
         return bookService.updateBook(id, book)
     }
     
@@ -55,4 +51,9 @@ class BookController(
     
     @SchemaMapping(typeName = "Book", field = "author")
     fun getAuthor(book: Book) = authorService.getAuthorById(book.authorId)
-} 
+}
+
+data class BookInput(
+    val title: String,
+    val authorId: String
+) 
