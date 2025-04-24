@@ -7,22 +7,26 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
 @Controller
-class AuthorController(
-    private val authorService: AuthorService,
-    private val bookService: BookService
+open class AuthorController(
+    open val authorService: AuthorService,
+    open val bookService: BookService
 ) {
     
     @QueryMapping
-    fun authors(): List<Author> = authorService.getAllAuthors()
+    @PreAuthorize("hasAnyRole('AUTHOR_MANAGER', 'ADMIN')")
+    open fun authors(): List<Author> = authorService.getAllAuthors()
     
     @QueryMapping
-    fun author(@Argument id: String): Author? = authorService.getAuthorById(id)
+    @PreAuthorize("hasRole('AUTHOR_MANAGER') or hasRole('ADMIN')")
+    open fun author(@Argument id: String): Author? = authorService.getAuthorById(id)
     
     @MutationMapping
-    fun createAuthor(
+    @PreAuthorize("hasRole('AUTHOR_MANAGER') or hasRole('ADMIN')")
+    open fun createAuthor(
         @Argument firstName: String,
         @Argument lastName: String
     ): Author {
@@ -35,7 +39,8 @@ class AuthorController(
     }
     
     @MutationMapping
-    fun updateAuthor(
+    @PreAuthorize("hasRole('AUTHOR_MANAGER') or hasRole('ADMIN')")
+    open fun updateAuthor(
         @Argument id: String,
         @Argument firstName: String,
         @Argument lastName: String
@@ -45,11 +50,13 @@ class AuthorController(
     }
     
     @MutationMapping
-    fun deleteAuthor(@Argument id: String): Boolean {
+    @PreAuthorize("hasRole('AUTHOR_MANAGER') or hasRole('ADMIN')")
+    open fun deleteAuthor(@Argument id: String): Boolean {
         authorService.deleteAuthor(id)
         return true
     }
     
     @SchemaMapping(typeName = "Author", field = "books")
-    fun getBooks(author: Author) = bookService.getBooksByAuthorId(author.id)
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun getBooks(author: Author) = bookService.getBooksByAuthorId(author.id)
 } 

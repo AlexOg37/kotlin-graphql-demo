@@ -7,25 +7,30 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
 @Controller
-class BookController(
-    private val bookService: BookService,
-    private val authorService: AuthorService
+open class BookController(
+    open val bookService: BookService,
+    open val authorService: AuthorService
 ) {
     
     @QueryMapping
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
     fun hello(): String = "Hello, GraphQL!"
     
     @QueryMapping
-    fun books(): List<Book> = bookService.getAllBooks()
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun books(): List<Book> = bookService.getAllBooks()
     
     @QueryMapping
-    fun book(@Argument id: String): Book? = bookService.getBookById(id)
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun book(@Argument id: String): Book? = bookService.getBookById(id)
     
     @MutationMapping
-    fun createBook(@Argument("input") input: BookInput): Book {
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun createBook(@Argument("input") input: BookInput): Book {
         val book = Book(
             id = (bookService.getAllBooks().size + 1).toString(),
             title = input.title,
@@ -35,7 +40,8 @@ class BookController(
     }
     
     @MutationMapping
-    fun updateBook(
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun updateBook(
         @Argument id: String,
         @Argument("input") input: BookInput
     ): Book? {
@@ -44,13 +50,15 @@ class BookController(
     }
     
     @MutationMapping
-    fun deleteBook(@Argument id: String): Boolean {
+    @PreAuthorize("hasRole('BOOK_MANAGER') or hasRole('ADMIN')")
+    open fun deleteBook(@Argument id: String): Boolean {
         bookService.deleteBook(id)
         return true
     }
     
     @SchemaMapping(typeName = "Book", field = "author")
-    fun getAuthor(book: Book) = authorService.getAuthorById(book.authorId)
+    @PreAuthorize("hasRole('AUTHOR_MANAGER') or hasRole('ADMIN')")
+    open fun getAuthor(book: Book) = authorService.getAuthorById(book.authorId)
 }
 
 data class BookInput(
